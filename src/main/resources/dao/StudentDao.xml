@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="dao.StudentDao">
+    <resultMap id="Student" type="entity.Student">
+        <id column="id" property="id"></id>
+        <result column="student_id" property="studentId"></result>
+        <result column="name" property="name"></result>
+        <result column="sex" property="sex"></result>
+        <collection property="scores" ofType="entity.Score">
+            <id column="s_id" property="sid"/>
+            <result column="student_id" property="studentId"/>
+            <result column="course_name" property="courseName"/>
+            <result column="grade" property="grade"/>
+        </collection>
+    </resultMap>
+    <select id="findListPage" resultMap="Student">
+        SELECT
+          s.id,
+          s.student_id,
+          s.name,
+          s.sex,
+          c.course_name,
+          c.grade
+        FROM student s LEFT JOIN score c on s.student_id = c.student_id
+        WHERE 1=1
+          <if test="name!= ''">
+            and s.name = #{name}
+          </if>
+          <if test="studentId!= ''">
+            and s.student_id = #{studentId}
+          </if>
+         limit #{begin},#{limit}
+    </select>
+
+    <select id="findStudentById" parameterType="entity.Student" resultMap="Student">
+        select s.id,
+          s.student_id,
+          s.name,
+          s.sex
+        from student s WHERE s.id=#{id}
+    </select>
+    <select id="getTotal" resultType="int">
+        select count(*) from student
+        <where>
+            <if test="name != null">
+                name = #{name}
+            </if>
+            <if test="studentId!= ''">
+                and student_id = #{studentId}
+            </if>
+        </where>
+    </select>
+    <insert id="insert" parameterType="entity.Student">
+        INSERT INTO student(student_id,name,sex,create_date) VALUES (#{studentId},#{name},#{sex},now())
+    </insert>
+    <update id="update" parameterType="entity.Student">
+        update student set name=#{name},sex=#{sex},create_date=now()
+        WHERE id=#{id}
+    </update>
+    <delete id="delStudents" >
+        delete from student
+        <where>
+            id in
+            <foreach collection="array" item="id" open="(" close=")" separator="," >
+                #{id}
+            </foreach>
+        </where>
+    </delete>
+</mapper>
